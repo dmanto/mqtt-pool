@@ -28,6 +28,7 @@
     "build:clean": "run-s clean build",
     "clean": "rimraf tsconfig.tsbuildinfo lib",
     "test": "pnpm build && node --test 'test/**/*.test.ts'",
+    "bench": "pnpm build && node bench/run.js",
     "prepublishOnly": "pnpm run build",
     "publish:patch": "pnpm version patch && pnpm publish",
     "publish:minor": "pnpm version minor && pnpm publish"
@@ -43,8 +44,14 @@
     "mqtt": "^5.10.1"
   },
   "devDependencies": {
+    "@mojojs/core": "^1.26.12",
+    "@types/autocannon": "^7.12.7",
+    "@types/express": "^5.0.6",
     "@types/node": "^22.0.0",
     "aedes": "^0.51.3",
+    "autocannon": "^8.0.0",
+    "express": "^5.2.1",
+    "fastify": "^5.8.4",
     "rimraf": "^6.0.1",
     "typescript": "^5.5.4"
   }
