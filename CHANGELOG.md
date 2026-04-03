@@ -20,10 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `pool.request(cmdTopic, payload, opts)` — publish a command and wait for one reply
 - `pool.end()` / `[Symbol.asyncDispose]` — graceful drain and shutdown, supports `await using`
 - Pool status getters: `size`, `available`, `borrowed`, `pending`
-- Subscription tracking: `subscribeAsync` and `unsubscribeAsync` calls are tracked per client; all active subscriptions are cleaned up on release
+- Subscription tracking: `subscribeAsync` and `unsubscribeAsync` calls are tracked per client; all active subscriptions are cleaned up on release; string, array, and `ISubscriptionMap` topic forms all tracked correctly
 - `clean: true` and `reconnectPeriod: 0` enforced on all pooled connections
 - `testOnBorrow: true` with periodic eviction to detect and replace stale connections
 - LWT (`will`) option throws at construction time with a clear error message
+- Test suite using `node:test` and an in-process `aedes` broker; assertions include `broker.aedes.connectedClients` to verify actual TCP connection lifecycle
 
 ## 0.0.1 - 2026-04-02
 

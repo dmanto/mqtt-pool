@@ -18,9 +18,11 @@ test('MqttPool', async t => {
     await using pool = createMqttPool(BROKER_URL, {min: 1, max: 3});
     const client = await pool.acquire();
     assert.ok(client.connected);
+    assert.equal(broker.aedes.connectedClients, 1);
     await pool.release(client);
     assert.equal(pool.borrowed, 0);
     assert.equal(pool.available, 1);
+    assert.equal(broker.aedes.connectedClients, 1); // returned to pool, not closed
   });
 
   await t.test('await using on acquired client releases back to pool', async () => {
@@ -61,8 +63,18 @@ test('MqttPool', async t => {
 
   await t.test('receive timeout', async () => {
     await using pool = createMqttPool(BROKER_URL, {min: 1, max: 3});
+    // timeout fires after subscribeAsync completes; 1ms is enough since no message is published
     await assert.rejects(
-      () => pool.receive('test/timeout', {timeout: 100}),
+      () => pool.receive('test/timeout', {timeout: 1}),
+      /timed out/
+    );
+    assert.equal(pool.borrowed, 0);
+  });
+
+  await t.test('request timeout', async () => {
+    await using pool = createMqttPool(BROKER_URL, {min: 1, max: 3});
+    await assert.rejects(
+      () => pool.request('cmd/noreply', 'ping', {responseTopic: 'cmd/noreply-resp', timeout: 1}),
       /timed out/
     );
     assert.equal(pool.borrowed, 0);
@@ -81,11 +93,89 @@ test('MqttPool', async t => {
     assert.equal(pool.borrowed, 0);
   });
 
+  await t.test('destroy removes connection from pool', async () => {
+    // min:0 so pool does not immediately replace the destroyed connection
+    await using pool = createMqttPool(BROKER_URL, {min: 0, max: 3});
+    const client = await pool.acquire();
+    assert.equal(pool.borrowed, 1);
+    assert.equal(broker.aedes.connectedClients, 1);
+    await pool.destroy(client);
+    assert.equal(pool.borrowed, 0);
+    assert.equal(pool.size, 0);
+    await broker.waitForClients(0);
+    assert.equal(broker.aedes.connectedClients, 0);
+  });
+
+  await t.test('await using on pool calls end()', async () => {
+    {
+      await using pool = createMqttPool(BROKER_URL, {min: 1, max: 3});
+      const client = await pool.acquire();
+      assert.equal(broker.aedes.connectedClients, 1);
+      await pool.release(client);
+    } // asyncDispose closes all connections here
+    await broker.waitForClients(0);
+    assert.equal(broker.aedes.connectedClients, 0);
+  });
+
+  await t.test('release unsubscribes array of topics', async () => {
+    await using pool = createMqttPool(BROKER_URL, {min: 1, max: 3});
+    const client = await pool.acquire();
+    await client.subscribeAsync(['test/a', 'test/b']);
+    await pool.release(client);
+    const client2 = await pool.acquire();
+    assert.equal((client2 as {_poolSubs: Set<string>})._poolSubs.size, 0);
+    await pool.release(client2);
+  });
+
+  await t.test('release unsubscribes ISubscriptionMap topics', async () => {
+    await using pool = createMqttPool(BROKER_URL, {min: 1, max: 3});
+    const client = await pool.acquire();
+    await client.subscribeAsync({'test/x': {qos: 0}, 'test/y': {qos: 1}});
+    await pool.release(client);
+    const client2 = await pool.acquire();
+    assert.equal((client2 as {_poolSubs: Set<string>})._poolSubs.size, 0);
+    await pool.release(client2);
+  });
+
+  await t.test('pool status getters reflect concurrency', async () => {
+    await using pool = createMqttPool(BROKER_URL, {min: 0, max: 2});
+    const [c1, c2] = await Promise.all([pool.acquire(), pool.acquire()]);
+    assert.equal(pool.borrowed, 2);
+    assert.equal(pool.available, 0);
+    assert.equal(pool.size, 2);
+    assert.equal(broker.aedes.connectedClients, 2);
+    await pool.release(c1);
+    assert.equal(pool.borrowed, 1);
+    assert.equal(pool.available, 1);
+    assert.equal(broker.aedes.connectedClients, 2); // c1 back in pool, still connected
+    await pool.release(c2);
+    assert.equal(pool.borrowed, 0);
+    assert.equal(broker.aedes.connectedClients, 2); // both idle in pool
+  });
+
+  await t.test('max connections limit — pending acquire waits', async () => {
+    await using pool = createMqttPool(BROKER_URL, {min: 0, max: 1, acquireTimeoutMillis: 5000});
+    const c1 = await pool.acquire();
+    assert.equal(pool.borrowed, 1);
+    // second acquire must wait — release c1 after a tick
+    const pendingAcquire = pool.acquire();
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(pool.pending, 1);
+    await pool.release(c1);
+    const c2 = await pendingAcquire;
+    assert.equal(pool.borrowed, 1);
+    assert.equal(pool.pending, 0);
+    await pool.release(c2);
+  });
+
   await t.test('pool.end() drains all connections', async () => {
     const pool = createMqttPool(BROKER_URL, {min: 1, max: 3});
     const client = await pool.acquire();
+    assert.equal(broker.aedes.connectedClients, 1);
     await pool.release(client);
     await pool.end();
     assert.equal(pool.size, 0);
+    await broker.waitForClients(0);
+    assert.equal(broker.aedes.connectedClients, 0);
   });
 });
