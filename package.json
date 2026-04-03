@@ -27,12 +27,14 @@
     "build": "pnpm exec tsc --build ./",
     "build:clean": "run-s clean build",
     "clean": "rimraf tsconfig.tsbuildinfo lib",
+    "test": "pnpm build && node --test 'test/**/*.test.ts'",
     "prepublishOnly": "pnpm run build",
     "publish:patch": "pnpm version patch && pnpm publish",
     "publish:minor": "pnpm version minor && pnpm publish"
   },
   "engines": {
-    "node": ">= 20"
+    "node": ">= 20",
+    "node-dev": ">= 22.6"
   },
   "dependencies": {
     "generic-pool": "^3.9.0"
@@ -41,6 +43,8 @@
     "mqtt": "^5.10.1"
   },
   "devDependencies": {
+    "@types/node": "^22.0.0",
+    "aedes": "^0.51.3",
     "rimraf": "^6.0.1",
     "typescript": "^5.5.4"
   }
