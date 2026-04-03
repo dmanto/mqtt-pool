@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 0.1.1 - 2026-04-03
+
+### Added
+
+- Benchmark suite (`pnpm bench`) — Express, Fastify, and MojoJS each with a
+  naive (connect per request) and a pool route; reports req/s, p50/p97.5/p99
+  latency, and broker-side connect/disconnect/publish counts via aedes events
+- README rewritten around benchmark results as the primary "why this package"
+  argument
+
 ## 0.1.0 - 2026-04-03
 
 ### Added
