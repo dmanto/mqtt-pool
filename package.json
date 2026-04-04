@@ -27,7 +27,8 @@
     "build": "pnpm exec tsc --build ./",
     "build:clean": "run-s clean build",
     "clean": "rimraf tsconfig.tsbuildinfo lib",
-    "test": "pnpm build && node --test 'test/**/*.test.ts'",
+    "test": "pnpm build && node --experimental-strip-types --test test/pool.compat.test.ts",
+    "test:await-using": "node --test test/pool.test.ts",
     "bench": "pnpm build && node bench/run.js",
     "prepublishOnly": "pnpm run build",
     "publish:patch": "pnpm version patch && pnpm publish",
@@ -37,7 +38,7 @@
   },
   "engines": {
     "node": ">= 20",
-    "node-dev": ">= 22.6"
+    "node-dev": ">= 24"
   },
   "dependencies": {
     "generic-pool": "^3.9.0"
