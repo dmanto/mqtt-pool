@@ -1,5 +1,11 @@
 # mqtt-pool
 
+[![CI](https://github.com/dmanto/mqtt-pool/actions/workflows/ci.yml/badge.svg)](https://github.com/dmanto/mqtt-pool/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/mqtt-pool)](https://www.npmjs.com/package/mqtt-pool)
+[![npm downloads](https://img.shields.io/npm/dm/mqtt-pool)](https://www.npmjs.com/package/mqtt-pool)
+[![Node.js >= 20](https://img.shields.io/badge/node-%3E%3D20-brightgreen)](https://nodejs.org)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
 A connection pool for the [mqtt](https://www.npmjs.com/package/mqtt) package, inspired by [pg-pool](https://github.com/brianc/node-postgres/tree/master/packages/pg-pool).
 
 ## Why?
