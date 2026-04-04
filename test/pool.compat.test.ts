@@ -63,12 +63,14 @@ test('MqttPool (compat)', async t => {
     await t.test('receive', async () => {
       const pool = createMqttPool(BROKER_URL, {min: 1, max: 3});
       try {
-        const receivePromise = pool.receive('test/recv');
-        await pool.publish('test/recv', 'world');
-        const {topic, message} = await receivePromise;
+        // Publish retained so receive() gets the message regardless of subscribe timing
+        await pool.publish('test/recv', 'world', {retain: true});
+        const {topic, message} = await pool.receive('test/recv');
         assert.equal(topic, 'test/recv');
         assert.equal(message.toString(), 'world');
         assert.equal(pool.borrowed, 0);
+        // Clear retained message
+        await pool.publish('test/recv', '', {retain: true});
       } finally {
         await pool.end();
       }
