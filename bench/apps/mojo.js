@@ -14,7 +14,10 @@ export function createMojoApp(brokerUrl) {
     try {
       const {message} = await new Promise((resolve, reject) => {
         const timer = setTimeout(() => reject(new Error('timeout')), 5000);
-        client.once('message', (topic, message) => { clearTimeout(timer); resolve({topic, message}); });
+        client.once('message', (topic, message) => {
+          clearTimeout(timer);
+          resolve({topic, message});
+        });
         client.subscribe(`bench/reply/${id}`, () => {
           client.publish(`bench/cmd/${id}`, 'ping');
         });

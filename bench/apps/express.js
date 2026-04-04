@@ -14,7 +14,10 @@ export function createExpressApp(brokerUrl) {
     try {
       const {message} = await new Promise((resolve, reject) => {
         const timer = setTimeout(() => reject(new Error('timeout')), 5000);
-        client.once('message', (topic, message) => { clearTimeout(timer); resolve({topic, message}); });
+        client.once('message', (topic, message) => {
+          clearTimeout(timer);
+          resolve({topic, message});
+        });
         client.subscribe(`bench/reply/${id}`, () => {
           client.publish(`bench/cmd/${id}`, 'ping');
         });
@@ -39,6 +42,6 @@ export function createExpressApp(brokerUrl) {
   return {
     pool,
     listen: port => new Promise(resolve => server.listen(port, '127.0.0.1', resolve)),
-    stop:   ()   => new Promise(resolve => server.close(resolve))
+    stop: () => new Promise(resolve => server.close(resolve))
   };
 }

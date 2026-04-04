@@ -2,6 +2,12 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {createMqttPool} from '../lib/index.js';
 import {startBroker} from './helpers/broker.js';
+import {type MqttClient} from 'mqtt';
+
+// Internal shape added by wrapClient — used only in subscription-tracking tests
+type TrackedMqttClient = MqttClient & {
+  _poolSubs: Set<string>;
+};
 
 test('MqttPool', async t => {
   await using broker = await startBroker();
@@ -9,6 +15,7 @@ test('MqttPool', async t => {
 
   await t.test('throws on LWT option', () => {
     assert.throws(
+      // @ts-expect-error: `will` is intentionally excluded from mqttOptions — verifying the runtime guard
       () => createMqttPool(BROKER_URL, {mqttOptions: {will: {topic: 'x', payload: 'x', qos: 0, retain: false}}}),
       /LWT/
     );
@@ -40,8 +47,9 @@ test('MqttPool', async t => {
     await client.subscribeAsync('test/topic');
     await pool.release(client);
     // reacquire same connection — subscription set must be empty
-    const client2 = await pool.acquire();
-    assert.equal((client2 as {_poolSubs: Set<string>})._poolSubs.size, 0);
+    const client2 = (await pool.acquire()) as unknown as TrackedMqttClient;
+    assert.equal(client2._poolSubs.size, 0);
+
     await pool.release(client2);
   });
 
@@ -64,10 +72,7 @@ test('MqttPool', async t => {
   await t.test('receive timeout', async () => {
     await using pool = createMqttPool(BROKER_URL, {min: 1, max: 3});
     // timeout fires after subscribeAsync completes; 1ms is enough since no message is published
-    await assert.rejects(
-      () => pool.receive('test/timeout', {timeout: 1}),
-      /timed out/
-    );
+    await assert.rejects(() => pool.receive('test/timeout', {timeout: 1}), /timed out/);
     assert.equal(pool.borrowed, 0);
   });
 
@@ -122,8 +127,8 @@ test('MqttPool', async t => {
     const client = await pool.acquire();
     await client.subscribeAsync(['test/a', 'test/b']);
     await pool.release(client);
-    const client2 = await pool.acquire();
-    assert.equal((client2 as {_poolSubs: Set<string>})._poolSubs.size, 0);
+    const client2 = (await pool.acquire()) as unknown as TrackedMqttClient;
+    assert.equal(client2._poolSubs.size, 0);
     await pool.release(client2);
   });
 
@@ -132,8 +137,8 @@ test('MqttPool', async t => {
     const client = await pool.acquire();
     await client.subscribeAsync({'test/x': {qos: 0}, 'test/y': {qos: 1}});
     await pool.release(client);
-    const client2 = await pool.acquire();
-    assert.equal((client2 as {_poolSubs: Set<string>})._poolSubs.size, 0);
+    const client2 = (await pool.acquire()) as unknown as TrackedMqttClient;
+    assert.equal(client2._poolSubs.size, 0);
     await pool.release(client2);
   });
 

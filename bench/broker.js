@@ -23,9 +23,11 @@ export async function startBroker(port = 61664) {
   let disconnects = 0;
   let publishes = 0;
 
-  aedes.on('client',           () => connects++);
+  aedes.on('client', () => connects++);
   aedes.on('clientDisconnect', () => disconnects++);
-  aedes.on('publish',          (packet, client) => { if (client) publishes++; });
+  aedes.on('publish', (packet, client) => {
+    if (client) publishes++;
+  });
 
   return {
     port,
@@ -34,7 +36,9 @@ export async function startBroker(port = 61664) {
       return {connects, disconnects, publishes, connectedClients: aedes.connectedClients};
     },
     resetCounters() {
-      connects = 0; disconnects = 0; publishes = 0;
+      connects = 0;
+      disconnects = 0;
+      publishes = 0;
     },
     [Symbol.asyncDispose]: () =>
       new Promise((resolve, reject) => {

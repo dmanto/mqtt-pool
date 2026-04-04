@@ -31,7 +31,9 @@
     "bench": "pnpm build && node bench/run.js",
     "prepublishOnly": "pnpm run build",
     "publish:patch": "pnpm version patch && pnpm publish",
-    "publish:minor": "pnpm version minor && pnpm publish"
+    "publish:minor": "pnpm version minor && pnpm publish",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "engines": {
     "node": ">= 20",
@@ -52,6 +54,7 @@
     "autocannon": "^8.0.0",
     "express": "^5.2.1",
     "fastify": "^5.8.4",
+    "prettier": "^3.8.1",
     "rimraf": "^6.0.1",
     "typescript": "^5.5.4"
   }

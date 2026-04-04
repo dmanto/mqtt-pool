@@ -65,9 +65,7 @@ function wrapClient(client: MqttClient): TrackedClient {
     topicObject: string | string[] | ISubscriptionMap,
     opts?: IClientSubscribeOptions | IClientSubscribeProperties
   ): Promise<ISubscriptionGrant[]> => {
-    const result = opts !== undefined
-      ? await origSubscribe(topicObject, opts)
-      : await origSubscribe(topicObject);
+    const result = opts !== undefined ? await origSubscribe(topicObject, opts) : await origSubscribe(topicObject);
     topicsOf(topicObject).forEach(t => subs.add(t));
     return result;
   };
@@ -76,9 +74,7 @@ function wrapClient(client: MqttClient): TrackedClient {
     topic: string | string[],
     opts?: IClientUnsubscribeProperties
   ): Promise<Packet | undefined> => {
-    const result = opts !== undefined
-      ? await origUnsubscribe(topic, opts)
-      : await origUnsubscribe(topic);
+    const result = opts !== undefined ? await origUnsubscribe(topic, opts) : await origUnsubscribe(topic);
     topicsOf(topic).forEach(t => subs.delete(t));
     return result;
   };
@@ -160,10 +156,7 @@ export class MqttPool implements AsyncDisposable {
     try {
       await client.subscribeAsync(topic, {qos});
       const result = await new Promise<ReceiveResult>((resolve, reject) => {
-        const timer = setTimeout(
-          () => reject(new Error(`mqtt-pool: receive timed out after ${timeout}ms`)),
-          timeout
-        );
+        const timer = setTimeout(() => reject(new Error(`mqtt-pool: receive timed out after ${timeout}ms`)), timeout);
         client.once('message', (t, message) => {
           clearTimeout(timer);
           resolve({topic: t, message});
@@ -187,10 +180,7 @@ export class MqttPool implements AsyncDisposable {
     try {
       await client.subscribeAsync(responseTopic, {qos});
       const responsePromise = new Promise<ReceiveResult>((resolve, reject) => {
-        const timer = setTimeout(
-          () => reject(new Error(`mqtt-pool: request timed out after ${timeout}ms`)),
-          timeout
-        );
+        const timer = setTimeout(() => reject(new Error(`mqtt-pool: request timed out after ${timeout}ms`)), timeout);
         client.once('message', (t, message) => {
           clearTimeout(timer);
           resolve({topic: t, message});
@@ -216,10 +206,18 @@ export class MqttPool implements AsyncDisposable {
     await this.end();
   }
 
-  get size(): number {return this._pool.size;}
-  get available(): number {return this._pool.available;}
-  get borrowed(): number {return this._pool.borrowed;}
-  get pending(): number {return this._pool.pending;}
+  get size(): number {
+    return this._pool.size;
+  }
+  get available(): number {
+    return this._pool.available;
+  }
+  get borrowed(): number {
+    return this._pool.borrowed;
+  }
+  get pending(): number {
+    return this._pool.pending;
+  }
 }
 
 export function createMqttPool(brokerUrl: string, opts?: MqttPoolOptions): MqttPool {

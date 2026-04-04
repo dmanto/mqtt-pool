@@ -4,9 +4,9 @@ import {createExpressApp} from './apps/express.js';
 import {createFastifyApp} from './apps/fastify.js';
 import {createMojoApp} from './apps/mojo.js';
 
-const DURATION    = 10;  // seconds per route
-const CONNECTIONS = 10;  // concurrent HTTP connections
-const DRAIN_MS    = 600; // wait after each run for stragglers to disconnect
+const DURATION = 10; // seconds per route
+const CONNECTIONS = 10; // concurrent HTTP connections
+const DRAIN_MS = 600; // wait after each run for stragglers to disconnect
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -20,8 +20,12 @@ async function bench(url, broker, label) {
   return {label, result, snap};
 }
 
-function pad(n, w = 8) { return String(n).padStart(w); }
-function ms(n) { return (typeof n === 'number' ? n.toFixed(2) + ' ms' : 'n/a').padStart(10); }
+function pad(n, w = 8) {
+  return String(n).padStart(w);
+}
+function ms(n) {
+  return (typeof n === 'number' ? n.toFixed(2) + ' ms' : 'n/a').padStart(10);
+}
 
 function printResult({label, result, snap}) {
   const lat = result.latency;
@@ -54,7 +58,7 @@ async function runFramework(name, broker, createApp, port) {
   console.log(`${'─'.repeat(56)}`);
 
   const naiveResult = await bench(`${base}/naive`, broker, 'naive  (connect per request)');
-  const poolResult  = await bench(`${base}/pool`,  broker, 'pool   (reuse connections)');
+  const poolResult = await bench(`${base}/pool`, broker, 'pool   (reuse connections)');
 
   printResult(naiveResult);
   printResult(poolResult);
@@ -70,9 +74,12 @@ async function main() {
 
   await runFramework('Express', broker, createExpressApp, 4001);
   await runFramework('Fastify', broker, createFastifyApp, 4002);
-  await runFramework('MojoJS',  broker, createMojoApp,    4003);
+  await runFramework('MojoJS', broker, createMojoApp, 4003);
 
   console.log(`\n${'─'.repeat(56)}\n`);
 }
 
-main().catch(err => { console.error(err); process.exit(1); });
+main().catch(err => {
+  console.error(err);
+  process.exit(1);
+});
