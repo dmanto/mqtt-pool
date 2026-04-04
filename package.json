@@ -1,6 +1,6 @@
 {
   "name": "mqtt-pool",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A connection pool for the mqtt package",
   "keywords": [
     "mqtt",
