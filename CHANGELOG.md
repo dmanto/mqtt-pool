@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## 0.1.2 - 2026-04-04
+
+### Added
+
+- Compatibility test suite (`pool.compat.test.ts`) — full API coverage using
+  `try/finally` instead of `await using`; runs on Node 22+ via
+  `--experimental-strip-types`
+- CI workflow (`ci.yml`) — two jobs: compat suite on Node 22 and 24 across all
+  platforms; `await using` suite on Node 24 only; runs on push and PR
+- Prettier setup — `.prettierrc.json`, `.prettierignore`, `format` and
+  `format:check` scripts
+
+### Fixed
+
+- `engines.node-dev` corrected to `>= 24` (`await using` requires V8 13.0,
+  shipped in Node 24)
+
 ## 0.1.1 - 2026-04-03
 
 ### Added
