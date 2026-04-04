@@ -33,7 +33,9 @@ jobs:
 
       - run: pnpm format:check
 
-      - run: pnpm test
+      - run: pnpm build
+
+      - run: node --experimental-strip-types --test test/pool.compat.test.ts
 
   # await using suite — requires Node 24+ (V8 13.0+)
   test-await-using:
@@ -61,4 +63,4 @@ jobs:
 
       - run: pnpm build
 
-      - run: pnpm test:await-using
+      - run: node --test test/pool.test.ts
